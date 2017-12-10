@@ -210,11 +210,27 @@ func (s *Server) handleRequest(session streamCreator, headerStream quic.Stream, 
 			}()
 			handler.ServeHTTP(responseWriter, req)
 		}()
+
 		if panicked {
 			responseWriter.WriteHeader(500)
 		} else {
-			responseWriter.WriteHeader(200)
+			switch responseWriter.status {
+			case http.StatusSwitchingProtocols:
+				if protocols, ok := responseWriter.Header()["Upgrade"]; ok {
+					fmt.Println("Upgrade to:", protocols)
+					for _, protocol := range protocols {
+						fmt.Println(protocol)
+						if handler, ok := upgradeHandlers[protocol]; ok {
+							handler(session)
+							break
+						}
+					}
+				}
+			case 0:
+				responseWriter.WriteHeader(200)
+			}
 		}
+
 		if responseWriter.dataStream != nil {
 			if !streamEnded && !reqBody.requestRead {
 				responseWriter.dataStream.Reset(nil)
