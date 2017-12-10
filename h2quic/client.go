@@ -15,7 +15,6 @@ import (
 	"golang.org/x/net/idna"
 
 	quic "github.com/lucas-clemente/quic-go"
-	"github.com/lucas-clemente/quic-go/internal/utils"
 	"github.com/lucas-clemente/quic-go/qerr"
 )
 
@@ -133,7 +132,7 @@ func (c *client) handleHeaderStream() {
 	}
 
 	// stop all running request
-	utils.Debugf("Error handling header stream %d: %s", lastStream, c.headerErr.Error())
+	fmt.Printf("Error handling header stream %d: %s\n", lastStream, c.headerErr.Error())
 	close(c.headerErrored)
 }
 

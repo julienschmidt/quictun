@@ -2,13 +2,13 @@ package h2quic
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 
 	quic "github.com/lucas-clemente/quic-go"
-	"github.com/lucas-clemente/quic-go/internal/utils"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
 )
@@ -56,7 +56,7 @@ func (w *responseWriter) WriteHeader(status int) {
 		}
 	}
 
-	utils.Infof("Responding with %d", status)
+	fmt.Printf("Responding with %d\n", status)
 	w.headerStreamMutex.Lock()
 	defer w.headerStreamMutex.Unlock()
 	h2framer := http2.NewFramer(w.headerStream, nil)
@@ -66,7 +66,7 @@ func (w *responseWriter) WriteHeader(status int) {
 		BlockFragment: headers.Bytes(),
 	})
 	if err != nil {
-		utils.Errorf("could not write h2 header: %s", err.Error())
+		fmt.Printf("could not write h2 header: %s\n", err.Error())
 	}
 }
 

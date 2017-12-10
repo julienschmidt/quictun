@@ -13,7 +13,6 @@ import (
 	"golang.org/x/net/lex/httplex"
 
 	quic "github.com/lucas-clemente/quic-go"
-	"github.com/lucas-clemente/quic-go/internal/utils"
 )
 
 type requestWriter struct {
@@ -156,7 +155,6 @@ func (w *requestWriter) encodeHeaders(req *http.Request, addGzipHeader bool, tra
 }
 
 func (w *requestWriter) writeHeader(name, value string) {
-	utils.Debugf("http2: Transport encoding header %q = %q", name, value)
 	w.henc.WriteField(hpack.HeaderField{Name: name, Value: value})
 }
 

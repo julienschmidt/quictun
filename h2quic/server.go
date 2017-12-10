@@ -13,7 +13,6 @@ import (
 	"time"
 
 	quic "github.com/lucas-clemente/quic-go"
-	"github.com/lucas-clemente/quic-go/internal/utils"
 	"github.com/lucas-clemente/quic-go/qerr"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
@@ -132,7 +131,7 @@ func (s *Server) handleHeaderStream(session streamCreator) {
 			// In this case, the session has already logged the error, so we don't
 			// need to log it again.
 			if _, ok := err.(*qerr.QuicError); !ok {
-				utils.Errorf("error handling h2 request: %s", err.Error())
+				fmt.Printf("error handling h2 request: %s\n", err.Error())
 			}
 			session.Close(err)
 			return
@@ -154,7 +153,7 @@ func (s *Server) handleRequest(session streamCreator, headerStream quic.Stream, 
 	}
 	headers, err := hpackDecoder.DecodeFull(h2headersFrame.HeaderBlockFragment())
 	if err != nil {
-		utils.Errorf("invalid http2 headers encoding: %s", err.Error())
+		fmt.Println("invalid http2 headers encoding:", err.Error())
 		return err
 	}
 
@@ -163,11 +162,7 @@ func (s *Server) handleRequest(session streamCreator, headerStream quic.Stream, 
 		return err
 	}
 
-	if utils.Debug() {
-		utils.Infof("%s %s%s, on data stream %d", req.Method, req.Host, req.RequestURI, h2headersFrame.StreamID)
-	} else {
-		utils.Infof("%s %s%s", req.Method, req.Host, req.RequestURI)
-	}
+	fmt.Printf("%s %s%s, on data stream %d\n", req.Method, req.Host, req.RequestURI, h2headersFrame.StreamID)
 
 	dataStream, err := session.GetOrOpenStream(quic.StreamID(h2headersFrame.StreamID))
 	if err != nil {
@@ -209,7 +204,7 @@ func (s *Server) handleRequest(session streamCreator, headerStream quic.Stream, 
 					const size = 64 << 10
 					buf := make([]byte, size)
 					buf = buf[:runtime.Stack(buf, false)]
-					utils.Errorf("http: panic serving: %v\n%s", p, buf)
+					fmt.Printf("http: panic serving: %v\n%s\n", p, buf)
 					panicked = true
 				}
 			}()
