@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/julienschmidt/quictun"
 )
@@ -18,7 +19,7 @@ func main() {
 		ListenAddr:  listenAddr,
 		TunnelAddr:  tunnelAddr,
 		UserAgent:   userAgent,
-		DialTimeout: dialTimeout,
+		DialTimeout: dialTimeout * time.Second,
 	}
 	log.Fatal(client.Run())
 }
