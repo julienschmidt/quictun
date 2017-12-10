@@ -167,6 +167,7 @@ func (c *Client) tunnelConn(local net.Conn) {
 	if err := socks.Auth(localRd, local); err != nil {
 		fmt.Println(err)
 		local.Close()
+		return
 	}
 
 	req, err := socks.PeekRequest(localRd)
@@ -174,6 +175,7 @@ func (c *Client) tunnelConn(local net.Conn) {
 		fmt.Println(err)
 		socks.SendReply(local, socks.StatusConnectionRefused, nil)
 		local.Close()
+		return
 	}
 
 	fmt.Println("request", req.Dest())
@@ -184,6 +186,7 @@ func (c *Client) tunnelConn(local net.Conn) {
 		if err = socks.SendReply(local, socks.StatusSucceeded, nil); err != nil {
 			fmt.Println(err)
 			local.Close()
+			return
 		}
 
 	default:
