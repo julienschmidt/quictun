@@ -82,6 +82,7 @@ func (c *Client) connect() error {
 		log.Fatal("NewRequest Err: ", err)
 		return err
 	}
+	req.Header.Set("User-Agent", c.UserAgent)
 	rw := newRequestWriter(c.headerStream)
 	endStream := true //endStream := !hasBody
 	err = rw.WriteRequest(req, dataStream.StreamID(), endStream)
