@@ -6,13 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/julienschmidt/quictun/internal/atomic"
 	"github.com/julienschmidt/quictun/internal/socks"
-	"github.com/julienschmidt/quictun/internal/util"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
 
@@ -27,7 +28,9 @@ var (
 	ErrWrongCredentials  = errors.New("authentication credentials seems to be wrong")
 )
 
+// Client holds the configuration and state of a quictun client
 type Client struct {
+	// config
 	ListenAddr  string
 	TunnelAddr  string
 	UserAgent   string
@@ -35,8 +38,13 @@ type Client struct {
 	QuicConfig  *quic.Config
 	DialTimeout time.Duration
 
+	// status
 	session   quic.Session
-	connected util.AtomicBool
+	connected atomic.Bool
+
+	// replay protection
+	clientID       uint64
+	sequenceNumber uint32
 
 	// header
 	headerStream quic.Stream
@@ -76,15 +84,26 @@ func (c *Client) connect() error {
 	}
 	fmt.Println("Data StreamID:", dataStream.StreamID())
 
-	fmt.Println("requesting", authURL)
+	// build HTTP request
+	// The authorization credentials are automatically encoded from the URL
 	req, err := http.NewRequest("GET", authURL, nil)
 	if err != nil {
 		log.Fatal("NewRequest Err: ", err)
 		return err
 	}
 	req.Header.Set("User-Agent", c.UserAgent)
+
+	// request protocol upgrade
+	req.Header.Set("Connection", "Upgrade")
+	req.Header.Set("Upgrade", protocolIdentifier)
+
+	// replay protection
+	c.sequenceNumber++
+	req.Header.Set("QTP", fmt.Sprintf("%016X%08X", c.clientID, c.sequenceNumber))
+
 	rw := newRequestWriter(c.headerStream)
 	endStream := true //endStream := !hasBody
+	fmt.Println("requesting", authURL)
 	err = rw.WriteRequest(req, dataStream.StreamID(), endStream)
 	if err != nil {
 		log.Fatal("WriteHeaders Err: ", err)
@@ -218,7 +237,14 @@ func (c *Client) close(err error) error {
 	return c.session.Close(err)
 }
 
+// Run starts the client to accept incoming SOCKS connections, which are tunneled
+// to the configured quictun server.
+// The tunnel connection is opened only on-demand.
 func (c *Client) Run() error {
+	// generate clientID
+	rand.Seed(time.Now().UnixNano())
+	c.clientID = rand.Uint64()
+
 	listener, err := net.Listen("tcp", c.ListenAddr)
 	if err != nil {
 		return fmt.Errorf("Failed to listen on %s: %s", c.ListenAddr, err)

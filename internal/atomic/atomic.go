@@ -1,4 +1,4 @@
-package util
+package atomic
 
 import (
 	"sync/atomic"
@@ -14,31 +14,31 @@ type noCopy struct{}
 // Lock is a no-op used by -copylocks checker from `go vet`.
 func (*noCopy) Lock() {}
 
-// atomicBool is a wrapper around uint32 for usage as a boolean value with
+// Bool is a wrapper around uint32 for usage as a boolean value with
 // atomic access.
-type AtomicBool struct {
+type Bool struct {
 	_noCopy noCopy
 	value   uint32
 }
 
 // IsSet returns whether the current boolean value is true
-func (ab *AtomicBool) IsSet() bool {
-	return atomic.LoadUint32(&ab.value) > 0
+func (b *Bool) IsSet() bool {
+	return atomic.LoadUint32(&b.value) > 0
 }
 
 // Set sets the value of the bool regardless of the previous value
-func (ab *AtomicBool) Set(value bool) {
+func (b *Bool) Set(value bool) {
 	if value {
-		atomic.StoreUint32(&ab.value, 1)
+		atomic.StoreUint32(&b.value, 1)
 	} else {
-		atomic.StoreUint32(&ab.value, 0)
+		atomic.StoreUint32(&b.value, 0)
 	}
 }
 
 // TrySet sets the value of the bool and returns whether the value has changed
-func (ab *AtomicBool) TrySet(value bool) bool {
+func (b *Bool) TrySet(value bool) bool {
 	if value {
-		return atomic.SwapUint32(&ab.value, 1) == 0
+		return atomic.SwapUint32(&b.value, 1) == 0
 	}
-	return atomic.SwapUint32(&ab.value, 0) > 0
+	return atomic.SwapUint32(&b.value, 0) > 0
 }
