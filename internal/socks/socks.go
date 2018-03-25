@@ -3,7 +3,6 @@ package socks
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"strconv"
@@ -245,8 +244,6 @@ func SendReply(wr io.Writer, status byte, addr Addr) error {
 		reply = reply[:3+len(addr)]
 		copy(reply[3:], addr)
 	}
-
-	fmt.Println("reply", reply)
 
 	// write reply
 	_, err := wr.Write(reply)

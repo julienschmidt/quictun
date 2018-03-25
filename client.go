@@ -83,13 +83,13 @@ func (c *Client) connect() error {
 		log.Fatal("OpenStream Err: ", err)
 		return err
 	}
-	fmt.Println("Header StreamID:", c.headerStream.StreamID())
+	//fmt.Println("Header StreamID:", c.headerStream.StreamID())
 
 	dataStream, err := c.session.OpenStreamSync()
 	if err != nil {
 		log.Fatal("OpenStreamSync Err: ", err)
 	}
-	fmt.Println("Data StreamID:", dataStream.StreamID())
+	//fmt.Println("Data StreamID:", dataStream.StreamID())
 
 	// build HTTP request
 	// The authorization credentials are automatically encoded from the URL
@@ -138,7 +138,7 @@ func (c *Client) connect() error {
 		log.Fatal("cannot read header fields: ", err)
 	}
 
-	fmt.Println("Frame for StreamID:", hframe.StreamID)
+	//fmt.Println("Frame for StreamID:", hframe.StreamID)
 
 	rsp, err := responseFromHeaders(mhframe)
 	if err != nil {
@@ -177,7 +177,6 @@ func (c *Client) watchCancel() {
 		return
 	}
 
-	fmt.Println("waiting on ctx...")
 	// TODO: add graceful shutdown channel
 	<-ctx.Done()
 	fmt.Println("session closed", ctx.Err())
@@ -185,8 +184,6 @@ func (c *Client) watchCancel() {
 }
 
 func (c *Client) tunnelConn(local net.Conn) {
-	fmt.Println("tunnelConn", local.RemoteAddr().String())
-
 	local.(*net.TCPConn).SetKeepAlive(true)
 	// TODO: SetReadTimeout(conn)
 
@@ -224,7 +221,6 @@ func (c *Client) tunnelConn(local net.Conn) {
 		return
 	}
 
-	fmt.Println("OpenStream")
 	// TODO: check connected status again and reconnect if necessary
 	stream, err := c.session.OpenStreamSync()
 	if err != nil {
@@ -232,7 +228,6 @@ func (c *Client) tunnelConn(local net.Conn) {
 		local.Close()
 		return
 	}
-	fmt.Println("Stream Opened!")
 
 	fmt.Println("Start proxying...")
 	go proxy(local, stream) // recv from stream and send to local
@@ -266,6 +261,8 @@ func (c *Client) Run() error {
 			log.Println("Accept Err:", err)
 			continue
 		}
+
+		fmt.Println("new SOCKS conn", conn.RemoteAddr().String())
 
 		if !c.connected.IsSet() {
 			err = c.connect()
