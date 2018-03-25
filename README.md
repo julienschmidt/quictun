@@ -1,4 +1,4 @@
-# quictun
+# quictun [![GoDoc](https://godoc.org/github.com/julienschmidt/quictun?status.svg)](http://godoc.org/github.com/julienschmidt/quictun)
 
 quictun is a simple hidden tunnel based on the QUIC protocol.
 
