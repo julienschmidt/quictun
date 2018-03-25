@@ -15,13 +15,13 @@ Note that while quictun is meant to be implemented on top of [IETF QUIC](https:/
 
 `cmd/quictun_client` contains a very minimal client example. Actual clients MUST take care to be indistinguishable from an legitimate HTTP/2 over QUIC client, which a censor is unwilling to block, at the wire level. This could be achieved e.g. by reusing the net stack of a QUIC-capable web browser.
 
-`cmd/quictun_server` likewise contains a minimal server example. Note that this example server is easily fingerprintable and thus blockable. 
+`cmd/quictun_server` likewise contains a minimal server example. Note that this example server is easily fingerprintable and thus blockable.
 
 
 ## Installation
 
 ```sh
-go get -u quictun
+go get -u github.com/julienschmidt/quictun
 ```
 
 
