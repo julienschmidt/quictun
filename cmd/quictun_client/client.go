@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"log"
@@ -21,6 +22,7 @@ const (
 func main() {
 	// command-line flags and args
 	listenFlag := flag.String("l", "localhost:1080", "local SOCKS listen address")
+	insecureFlag := flag.Bool("invalidCerts", false, "accept all invalid certs (insecure)")
 	flag.Usage = func() {
 		fmt.Printf("Usage: %s [OPTIONS] QUICTUN_URL\n", os.Args[0])
 		flag.PrintDefaults()
@@ -39,6 +41,7 @@ func main() {
 		TunnelAddr:  tunnelAddr,
 		UserAgent:   userAgent,
 		DialTimeout: dialTimeout * time.Second,
+		TlsCfg:      &tls.Config{InsecureSkipVerify: *insecureFlag},
 	}
 	log.Fatal(client.Run())
 }
