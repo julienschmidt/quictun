@@ -42,7 +42,7 @@ func (s *Server) CheckSequenceNumber(header string) bool {
 	}
 
 	// the new sequence number must be larger than any previously seen number
-	return s.SequenceCache.Set(clientID, uint32(sequenceNumber)) > uint32(sequenceNumber)
+	return s.SequenceCache.Set(clientID, uint32(sequenceNumber)) < uint32(sequenceNumber)
 }
 
 // Upgrade starts using a given QUIC session with the quictun protocol.

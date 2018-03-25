@@ -24,6 +24,7 @@ const protocolIdentifier = "QTP/0.1"
 
 var (
 	ErrInvalidResponse   = errors.New("server returned an invalid response")
+	ErrInvalidSequence   = errors.New("client sequence number invalid")
 	ErrNotAQuictunServer = errors.New("server does not seems to be a quictun server")
 	ErrWrongCredentials  = errors.New("authentication credentials seems to be wrong")
 )
@@ -38,7 +39,7 @@ type Client struct {
 	QuicConfig  *quic.Config
 	DialTimeout time.Duration
 
-	// status
+	// state
 	session   quic.Session
 	connected atomic.Bool
 
@@ -50,6 +51,12 @@ type Client struct {
 	headerStream quic.Stream
 	hDecoder     *hpack.Decoder
 	h2framer     *http2.Framer
+}
+
+func (c *Client) generateClientID() {
+	// generate clientID
+	rand.Seed(time.Now().UnixNano())
+	c.clientID = rand.Uint64()
 }
 
 func (c *Client) connect() error {
@@ -149,6 +156,9 @@ func (c *Client) connect() error {
 		return nil
 	case http.StatusUnauthorized, http.StatusForbidden:
 		return ErrWrongCredentials
+	case http.StatusBadRequest:
+		c.generateClientID()
+		return ErrInvalidSequence
 	default:
 		return ErrInvalidResponse
 	}
@@ -241,9 +251,7 @@ func (c *Client) close(err error) error {
 // to the configured quictun server.
 // The tunnel connection is opened only on-demand.
 func (c *Client) Run() error {
-	// generate clientID
-	rand.Seed(time.Now().UnixNano())
-	c.clientID = rand.Uint64()
+	c.generateClientID()
 
 	listener, err := net.Listen("tcp", c.ListenAddr)
 	if err != nil {

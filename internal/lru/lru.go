@@ -16,20 +16,20 @@ type entry struct {
 // A map is used as the index.
 // The LRU order is tracked in a linked list.
 type LRU struct {
-	size  int               // max number of entries
-	head  *entry            // first entry in LRU order
-	cache map[uint64]*entry // mapping of all key-value pairs
-	lock  sync.Mutex        // guards the whole struct
+	capacity int               // max number of entries
+	head     *entry            // first entry in LRU order
+	cache    map[uint64]*entry // mapping of all key-value pairs
+	lock     sync.Mutex        // guards the whole struct
 }
 
-// NewLRU creates a new LRU cache with the given size
-func New(size int) *LRU {
-	if size < 2 {
-		panic("size must be at least 2")
+// NewLRU creates a new LRU cache with the given capacity
+func New(capacity int) *LRU {
+	if capacity < 2 {
+		panic("capacity must be at least 2")
 	}
 	return &LRU{
-		size:  size,
-		cache: make(map[uint64]*entry, size),
+		capacity: capacity,
+		cache:    make(map[uint64]*entry, capacity),
 	}
 }
 
@@ -53,7 +53,7 @@ func (l *LRU) Set(key uint64, value uint32) (old uint32) {
 	l.head = ep
 	l.cache[key] = ep
 
-	if len(l.cache) > l.size {
+	if len(l.cache) > l.capacity {
 		l.removeLast()
 	}
 	l.lock.Unlock()
