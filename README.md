@@ -25,3 +25,10 @@ go get -u github.com/julienschmidt/quictun
 ```
 
 
+## Usage
+
+Clients should use the [`quictun.Client` struct](https://godoc.org/github.com/julienschmidt/quictun#Client). An example client can be found in `cmd/quictun_client`. 
+
+Servers should either use the [`quictun.Server` struct](https://godoc.org/github.com/julienschmidt/quictun#Server) directly and manually implement the upgrade mechanism in the web server, or use the [`h2quic`](https://godoc.org/github.com/julienschmidt/quictun/h2quic) sub-package.
+
+A valid certificate is required to operate a server, which can e.g. be acquired from [Let's Encrypt](https://letsencrypt.org/). For testing purposes, the client may be insecurely configured to allow any, possible invalid, certificate instead. The example client provides a `-invalidCerts` flag for that purpose.
